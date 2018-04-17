@@ -1,5 +1,7 @@
+var fs = require('fs');
 var request = require('request');
-var secrets = require('./secrets')
+
+var secrets = require('./secrets');
 
 
 function getRepoContributors(repoOwner, repoName, callback) {
@@ -9,21 +11,36 @@ function getRepoContributors(repoOwner, repoName, callback) {
       'User-Agent': 'request',
       'Authorization': secrets
     }
-  };
+  }
 
   request(options, function(err, res, body) {
-    var parsed = JSON.parse(body);
-    for(var i = 0; i < parsed.length; i++) {
-      var avatar = parsed[i].avatar_url;
-      console.log(avatar);
+    if (err) {
+      throw err;
     }
-    callback(err, body);
+
+    var parsed = JSON.parse(body);
+
+    var contributors = [];
+
+    for(var i = 0; i < parsed.length; i++) {
+      var avatarLink = parsed[i].avatar_url;
+      contributors.push({url: avatarLink, fileName: parsed[i].login});
+    }
+
+    callback(err, contributors);
+
   });
 }
 
-getRepoContributors("jquery", "jquery", function(err, result) {
+getRepoContributors("jquery", "jquery", downloadImageByURL);
 
-});
-
-
+function downloadImageByURL(err, result) {
+  for (let user of result) {
+    request(user.url)
+      .on('error', function (err) {
+        throw err;
+      })
+      .pipe(fs.createWriteStream('./avatars/' + user.fileName + '.jpg'));
+  }
+};
 
