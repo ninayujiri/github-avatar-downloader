@@ -32,7 +32,7 @@ function getRepoContributors(repoOwner, repoName, callback) {
   });
 }
 
-getRepoContributors("jquery", "jquery", downloadImageByURL);
+getRepoContributors(process.argv[2], process.argv[3], downloadImageByURL);
 
 function downloadImageByURL(err, result) {
   for (let user of result) {
